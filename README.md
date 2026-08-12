@@ -14,12 +14,12 @@
 بعد ما المشروع يترفع على Vercel:
 
 ```text
-https://YOUR-APP.vercel.app/v1
+https://YOUR-APP.vercel.app/api/v1
 ```
 
 | الحقل في Presenton | القيمة |
 | --- | --- |
-| OpenAI Compatible URL | `https://YOUR-APP.vercel.app/v1` |
+| OpenAI Compatible URL | `https://YOUR-APP.vercel.app/api/v1` |
 | OpenAI Compatible API Key | `presenton` (أي قيمة) |
 | Model | `google/gemini-2.5-pro` |
 
@@ -35,14 +35,14 @@ https://YOUR-APP.vercel.app/v1
 
 ```bash
 LLM=custom
-CUSTOM_LLM_URL=https://YOUR-APP.vercel.app/v1
+CUSTOM_LLM_URL=https://YOUR-APP.vercel.app/api/v1
 CUSTOM_LLM_API_KEY=presenton
 CUSTOM_MODEL=google/gemini-2.5-pro
 ```
 
 ## Deploy على Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ffgg57594-gif/Gg/tree/arena/019ff695-gg&project-name=presenton-llm-gateway&repository-name=presenton-llm-gateway)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ffgg57594-gif/Gg/tree/arena/019ff6da-gg&project-name=presenton-llm-gateway&repository-name=presenton-llm-gateway)
 
 أو من الجهاز:
 
@@ -64,7 +64,7 @@ DEFAULT_MODEL=google/gemini-2.5-pro
 | --- | --- |
 | `UPSTREAM_URL` | Endpoint الشات الأصلي |
 | `DEFAULT_MODEL` | الموديل الافتراضي |
-| `MODELS` | قائمة موديلات مفصولة بفاصلة لـ `GET /v1/models` |
+| `MODELS` | قائمة موديلات مفصولة بفاصلة لـ `GET /api/v1/models` |
 | `PROXY_API_KEY` | لو اتظبط، Presenton لازم يستخدم نفس الـ key |
 
 خطة Vercel المجانية بتحدد مدة الدالة بحوالي 60 ثانية. لو العروض بتقطع، ارفع الخطة أو زوّد `maxDuration`.
@@ -73,17 +73,19 @@ DEFAULT_MODEL=google/gemini-2.5-pro
 
 | Method | Path | الاستخدام |
 | --- | --- | --- |
-| `GET` | `/v1` | Health / معلومات البوابة |
-| `GET` | `/v1/models` | اللي Presenton بيطلبه وهو بيفتح الموديلات |
-| `POST` | `/v1/chat/completions` | نفس شكل OpenAI |
-| `GET` | `/v1/chat/completions?prompt=...` | نفس الشات بـ GET |
+| `GET` | `/api/v1` | Health / معلومات البوابة |
+| `GET` | `/api/v1/models` | اللي Presenton بيطلبه وهو بيفتح الموديلات |
+| `POST` | `/api/v1/chat/completions` | نفس شكل OpenAI |
+| `GET` | `/api/v1/chat/completions?prompt=...` | نفس الشات بـ GET |
+
+> الـ Base URL الرسمي لـ Presenton هو `/api/v1`. المسار القديم `/v1` لسه شغال كـ alias عن طريق rewrites في `vercel.json`.
 
 ```bash
-curl -s https://YOUR-APP.vercel.app/v1/models
+curl -s https://YOUR-APP.vercel.app/api/v1/models
 
-curl -s "https://YOUR-APP.vercel.app/v1/chat/completions?prompt=Tell%20me%20a%20joke"
+curl -s "https://YOUR-APP.vercel.app/api/v1/chat/completions?prompt=Tell%20me%20a%20joke"
 
-curl -s https://YOUR-APP.vercel.app/v1/chat/completions \
+curl -s https://YOUR-APP.vercel.app/api/v1/chat/completions \
   -H 'Content-Type: application/json' \
   -d '{"model":"google/gemini-2.5-pro","messages":[{"role":"user","content":"Tell me a joke"}]}'
 ```
