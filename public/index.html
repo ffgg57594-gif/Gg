@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Presenton LLM Gateway — Base URL جاهز</title>
-  <meta name="description" content="بوابة OpenAI-compatible لـ Presenton. GET /v1/models و POST /v1/chat/completions فوق دالة الشات." />
+  <meta name="description" content="بوابة OpenAI-compatible لـ Presenton. GET /api/v1/models و POST /api/v1/chat/completions فوق دالة الشات." />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -149,8 +149,8 @@
     <p class="lede">
       السكريبت الأصلي بيعمل <b style="color:var(--text)">POST</b> على دالة Supabase.
       Presenton أول حاجة بيعمل <b style="color:var(--text)">GET</b> على
-      <code>/v1/models</code> عشان يجيب الموديلات، وبعدين POST على
-      <code>/v1/chat/completions</code>. البوابة دي بتعمل الاتنين.
+      <code>/api/v1/models</code> عشان يجيب الموديلات، وبعدين POST على
+      <code>/api/v1/chat/completions</code>. البوابة دي بتعمل الاتنين.
     </p>
 
     <div class="hero-grid">
@@ -174,13 +174,13 @@
         </div>
         <ul class="steps section">
           <li><span class="num">1</span><span>في presenton.ai افتح Settings واختار Custom / OpenAI Compatible.</span></li>
-          <li><span class="num">2</span><span>الصق الـ Base URL فوق (المسار <code>/v1</code> مهم).</span></li>
+          <li><span class="num">2</span><span>الصق الـ Base URL فوق (المسار <code>/api/v1</code> مهم).</span></li>
           <li><span class="num">3</span><span>الـ API Key أي قيمة، مثلاً <code>presenton</code>.</span></li>
           <li><span class="num">4</span><span>اضغط Check for available models واختار <code>google/gemini-2.5-pro</code>.</span></li>
         </ul>
         <div class="tags">
-          <span class="tag">GET /v1/models</span>
-          <span class="tag">POST /v1/chat/completions</span>
+          <span class="tag">GET /api/v1/models</span>
+          <span class="tag">POST /api/v1/chat/completions</span>
           <span class="tag">GET ?prompt=</span>
           <span class="tag">SSE stream</span>
         </div>
@@ -190,7 +190,7 @@
         <h2>جرّب الـ GET هنا</h2>
         <p class="tiny">ده نفس نوع الطلب اللي Presenton بيستخدمه وهو بيكتشف الموديلات.</p>
         <div class="section">
-          <button id="testModels" class="full" type="button">GET /v1/models</button>
+          <button id="testModels" class="full" type="button">GET /api/v1/models</button>
         </div>
         <div class="section">
           <div class="label">أو ابعت برومبت بـ GET</div>
@@ -207,20 +207,20 @@
       <section class="card">
         <h2>لو بتشغّل Presenton بنفسك</h2>
         <pre id="docker">LLM=custom
-CUSTOM_LLM_URL=https://YOUR-APP.vercel.app/v1
+CUSTOM_LLM_URL=https://YOUR-APP.vercel.app/api/v1
 CUSTOM_LLM_API_KEY=presenton
 CUSTOM_MODEL=google/gemini-2.5-pro</pre>
       </section>
       <section class="card">
         <h2>أمثلة سريعة</h2>
         <pre id="curl"># اكتشاف الموديلات (GET)
-curl -s https://HOST/v1/models
+curl -s https://HOST/api/v1/models
 
 # شات بـ GET
-curl -s "https://HOST/v1/chat/completions?prompt=Tell%20me%20a%20joke"
+curl -s "https://HOST/api/v1/chat/completions?prompt=Tell%20me%20a%20joke"
 
 # شات بـ POST (زي OpenAI)
-curl -s https://HOST/v1/chat/completions \
+curl -s https://HOST/api/v1/chat/completions \
   -H 'Content-Type: application/json' \
   -d '{"model":"google/gemini-2.5-pro","messages":[{"role":"user","content":"Tell me a joke"}]}'</pre>
       </section>
@@ -235,7 +235,7 @@ curl -s https://HOST/v1/chat/completions \
 
   <script>
     const origin = window.location.origin;
-    const base = origin + '/v1';
+    const base = origin + '/api/v1';
     const baseInput = document.getElementById('baseUrl');
     const out = document.getElementById('out');
     baseInput.value = base;
@@ -265,9 +265,9 @@ curl -s https://HOST/v1/chat/completions \
     }
 
     document.getElementById('testModels').addEventListener('click', async () => {
-      out.textContent = 'جاري GET /v1/models ...';
+      out.textContent = 'جاري GET /api/v1/models ...';
       try {
-        const res = await fetch('/v1/models');
+        const res = await fetch('/api/v1/models');
         const data = await res.json();
         show(data, res.ok);
       } catch (error) {
@@ -277,9 +277,9 @@ curl -s https://HOST/v1/chat/completions \
 
     document.getElementById('testChat').addEventListener('click', async () => {
       const prompt = document.getElementById('prompt').value || 'Tell me a joke';
-      out.textContent = 'جاري GET /v1/chat/completions ...';
+      out.textContent = 'جاري GET /api/v1/chat/completions ...';
       try {
-        const res = await fetch('/v1/chat/completions?' + new URLSearchParams({ prompt }));
+        const res = await fetch('/api/v1/chat/completions?' + new URLSearchParams({ prompt }));
         const data = await res.json();
         show(data, res.ok);
       } catch (error) {

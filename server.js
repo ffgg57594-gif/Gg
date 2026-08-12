@@ -53,5 +53,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Presenton LLM Gateway listening on http://0.0.0.0:${PORT}`);
-  console.log(`Presenton base URL: http://localhost:${PORT}/v1`);
+  console.log(`Presenton base URL: http://localhost:${PORT}/api/v1`);
 });
