@@ -1,6 +1,6 @@
 'use strict';
 
-const { handleRequest } = require('../lib/proxy');
+const { handleRequest } = require('../../../lib/proxy');
 
 module.exports = handleRequest;
 
