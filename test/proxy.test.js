@@ -144,13 +144,13 @@ test('buildUpstreamPayload strips Presenton streaming/tool fields and normalizes
     },
     new URLSearchParams(),
   );
-  assert.equal(payload.stream, false);
   assert.equal(payload.model, 'google/gemini-2.5-pro');
   assert.deepEqual(
     Object.keys(payload).sort(),
-    ['messages', 'model', 'stream'],
-    'only messages + model + stream should be forwarded',
+    ['messages', 'model'],
+    'only messages + model should be forwarded (no stream flag, no knobs)',
   );
+  assert.ok(!('stream' in payload), 'stream must not be forwarded upstream');
   // Normalized to plain strings; the assistant tool_call-only message is dropped.
   assert.deepEqual(payload.messages, [
     { role: 'system', content: 'You are an assistant.' },
