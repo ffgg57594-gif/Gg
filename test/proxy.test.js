@@ -2,6 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const http = require('http');
 const {
   pathnameOf,
   messagesFromInput,
@@ -10,7 +11,38 @@ const {
   looksLikeSse,
   wantsStream,
   buildUpstreamPayload,
+  handleRequest,
 } = require('../lib/proxy');
+
+function startGateway() {
+  return new Promise((resolve) => {
+    const server = http.createServer((req, res) => {
+      handleRequest(req, res).catch((err) => {
+        res.statusCode = 500;
+        res.end(JSON.stringify({ error: err.message }));
+      });
+    });
+    server.listen(0, '127.0.0.1', () => resolve(server));
+  });
+}
+
+function req(port, method, path, headers = {}, body) {
+  return new Promise((resolve) => {
+    const data = body == null ? null : JSON.stringify(body);
+    const h = { ...headers };
+    if (data != null) h['Content-Type'] = 'application/json';
+    const r = http.request(
+      { host: '127.0.0.1', port, method, path, headers: h },
+      (res) => {
+        let text = '';
+        res.on('data', (c) => (text += c));
+        res.on('end', () => resolve({ status: res.statusCode, text }));
+      },
+    );
+    if (data != null) r.write(data);
+    r.end();
+  });
+}
 
 test('pathnameOf strips /api prefix and trailing slash', () => {
   assert.equal(pathnameOf({ url: '/api/v1/models' }).pathname, '/v1/models');
@@ -81,4 +113,31 @@ test('buildUpstreamPayload defaults the model', () => {
   );
   assert.equal(payload.model, 'google/gemini-2.5-pro');
   assert.equal(payload.messages[0].content, 'x');
+});
+
+test('models endpoint stays public even when PROXY_API_KEY is set (presenton check)', async () => {
+  process.env.PROXY_API_KEY = 'secret';
+  const server = await startGateway();
+  const { port } = server.address();
+  try {
+    // "Check for available models" — presenton may send a key that does not
+    // match PROXY_API_KEY. The model list must still be returned.
+    const modelsNoAuth = await req(port, 'GET', '/api/v1/models');
+    assert.equal(modelsNoAuth.status, 200);
+    assert.match(modelsNoAuth.text, /google\/gemini-2\.5-pro/);
+
+    const modelsWrongKey = await req(port, 'GET', '/api/v1/models', {
+      Authorization: 'Bearer presenton',
+    });
+    assert.equal(modelsWrongKey.status, 200);
+
+    // Chat must remain protected when a key is configured.
+    const chatNoAuth = await req(port, 'POST', '/api/v1/chat/completions', {}, {
+      messages: [{ role: 'user', content: 'hi' }],
+    });
+    assert.equal(chatNoAuth.status, 401);
+  } finally {
+    server.close();
+    delete process.env.PROXY_API_KEY;
+  }
 });

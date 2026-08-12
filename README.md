@@ -42,7 +42,7 @@ CUSTOM_MODEL=google/gemini-2.5-pro
 
 ## Deploy على Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ffgg57594-gif/Gg/tree/arena/019ff6da-gg&project-name=presenton-llm-gateway&repository-name=presenton-llm-gateway)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ffgg57594-gif/Gg/tree/arena/019ff7a2-gg&project-name=presenton-llm-gateway&repository-name=presenton-llm-gateway)
 
 أو من الجهاز:
 
