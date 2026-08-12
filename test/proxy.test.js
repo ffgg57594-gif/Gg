@@ -115,8 +115,9 @@ test('buildUpstreamPayload defaults the model', () => {
   assert.equal(payload.messages[0].content, 'x');
 });
 
-test('buildUpstreamPayload strips Presenton streaming/tool fields and forces stream=false', () => {
-  // Presenton sends a full OpenAI streaming request with tools.
+test('buildUpstreamPayload strips Presenton streaming/tool fields and normalizes messages', () => {
+  // Presenton sends a full OpenAI streaming request with array content parts
+  // and tools; the upstream must receive clean string messages only.
   const payload = buildUpstreamPayload(
     {
       model: 'google/gemini-2.5-pro',
@@ -125,19 +126,40 @@ test('buildUpstreamPayload strips Presenton streaming/tool fields and forces str
       tool_choice: 'auto',
       response_format: { type: 'json_object' },
       n: 2,
-      messages: [{ role: 'user', content: 'hi' }],
       temperature: 0.7,
+      messages: [
+        {
+          role: 'system',
+          content: [{ type: 'text', text: 'You are an assistant.' }],
+        },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Hello' },
+            { type: 'text', text: ' world' },
+          ],
+        },
+        { role: 'assistant', content: null, tool_calls: [{ id: 'x', function: { name: 'y' } }] },
+      ],
     },
     new URLSearchParams(),
   );
   assert.equal(payload.stream, false);
-  assert.equal(payload.messages[0].content, 'hi');
   assert.equal(payload.model, 'google/gemini-2.5-pro');
-  assert.equal(payload.temperature, 0.7);
-  assert.ok(!('tools' in payload), 'tools must not be forwarded upstream');
-  assert.ok(!('tool_choice' in payload), 'tool_choice must not be forwarded upstream');
-  assert.ok(!('response_format' in payload), 'response_format must not be forwarded upstream');
-  assert.ok(!('n' in payload), 'n must not be forwarded upstream');
+  assert.deepEqual(
+    Object.keys(payload).sort(),
+    ['messages', 'model', 'stream'],
+    'only messages + model + stream should be forwarded',
+  );
+  // Normalized to plain strings; the assistant tool_call-only message is dropped.
+  assert.deepEqual(payload.messages, [
+    { role: 'system', content: 'You are an assistant.' },
+    { role: 'user', content: 'Hello\n world' },
+  ]);
+  assert.ok(!('tools' in payload));
+  assert.ok(!('tool_choice' in payload));
+  assert.ok(!('response_format' in payload));
+  assert.ok(!('temperature' in payload));
 });
 
 test('models endpoint stays public even when PROXY_API_KEY is set (presenton check)', async () => {
