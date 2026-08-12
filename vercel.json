@@ -18,11 +18,5 @@
         { "key": "Access-Control-Max-Age", "value": "86400" }
       ]
     }
-  ],
-  "functions": {
-    "api/[...path].js": {
-      "maxDuration": 60,
-      "memory": 1024
-    }
-  }
+  ]
 }
