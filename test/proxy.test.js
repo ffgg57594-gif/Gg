@@ -115,6 +115,31 @@ test('buildUpstreamPayload defaults the model', () => {
   assert.equal(payload.messages[0].content, 'x');
 });
 
+test('buildUpstreamPayload strips Presenton streaming/tool fields and forces stream=false', () => {
+  // Presenton sends a full OpenAI streaming request with tools.
+  const payload = buildUpstreamPayload(
+    {
+      model: 'google/gemini-2.5-pro',
+      stream: true,
+      tools: [{ type: 'function', function: { name: 'edit_slide' } }],
+      tool_choice: 'auto',
+      response_format: { type: 'json_object' },
+      n: 2,
+      messages: [{ role: 'user', content: 'hi' }],
+      temperature: 0.7,
+    },
+    new URLSearchParams(),
+  );
+  assert.equal(payload.stream, false);
+  assert.equal(payload.messages[0].content, 'hi');
+  assert.equal(payload.model, 'google/gemini-2.5-pro');
+  assert.equal(payload.temperature, 0.7);
+  assert.ok(!('tools' in payload), 'tools must not be forwarded upstream');
+  assert.ok(!('tool_choice' in payload), 'tool_choice must not be forwarded upstream');
+  assert.ok(!('response_format' in payload), 'response_format must not be forwarded upstream');
+  assert.ok(!('n' in payload), 'n must not be forwarded upstream');
+});
+
 test('models endpoint stays public even when PROXY_API_KEY is set (presenton check)', async () => {
   process.env.PROXY_API_KEY = 'secret';
   const server = await startGateway();
