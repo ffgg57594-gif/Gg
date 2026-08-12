@@ -1,0 +1,28 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "rewrites": [
+    { "source": "/v1", "destination": "/api/v1" },
+    { "source": "/v1/:path*", "destination": "/api/v1/:path*" },
+    { "source": "/models", "destination": "/api/v1/models" },
+    { "source": "/chat", "destination": "/api/v1/chat/completions" },
+    { "source": "/chat/:path*", "destination": "/api/v1/chat/:path*" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS, HEAD" },
+        { "key": "Access-Control-Allow-Headers", "value": "*" },
+        { "key": "Access-Control-Max-Age", "value": "86400" }
+      ]
+    }
+  ],
+  "functions": {
+    "api/[...path].js": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  }
+}

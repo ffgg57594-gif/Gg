@@ -1,0 +1,16 @@
+{
+  "name": "presenton-llm-gateway",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OpenAI-compatible base URL for Presenton. Wraps a POST-only chat function and exposes GET /v1/models + POST /v1/chat/completions.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
