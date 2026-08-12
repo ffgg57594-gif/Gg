@@ -162,6 +162,48 @@ test('buildUpstreamPayload strips Presenton streaming/tool fields and normalizes
   assert.ok(!('temperature' in payload));
 });
 
+test('gateway does NOT forward Presenton Authorization to the upstream', async () => {
+  // A BYOK upstream rejects a present-but-invalid Authorization with 400
+  // "Invalid request format", but accepts a request with no auth header (the
+  // user's direct GET curl with no key works). So the gateway must call the
+  // upstream without Presenton's dummy key.
+  let upstreamAuth = 'NOT-SET';
+  const upstreamServer = http.createServer((req, res) => {
+    upstreamAuth = String(req.headers.authorization || '');
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(
+      JSON.stringify({
+        id: 'c-1',
+        object: 'chat.completion',
+        model: 'google/gemini-2.5-pro',
+        choices: [{ index: 0, message: { role: 'assistant', content: 'OK' }, finish_reason: 'stop' }],
+      }),
+    );
+  });
+  await new Promise((r) => upstreamServer.listen(0, '127.0.0.1', r));
+  const upstreamPort = upstreamServer.address().port;
+  process.env.UPSTREAM_URL = `http://127.0.0.1:${upstreamPort}`;
+
+  const server = await startGateway();
+  const { port } = server.address();
+  try {
+    const chat = await req(
+      port,
+      'POST',
+      '/api/v1/chat/completions',
+      { Authorization: 'Bearer presenton-dummy-key' },
+      { model: 'google/gemini-2.5-pro', stream: true, messages: [{ role: 'user', content: 'hi' }] },
+    );
+    assert.equal(chat.status, 200);
+    assert.equal(upstreamAuth, '', 'upstream must NOT receive Presenton Authorization header');
+    assert.match(chat.text, /OK/);
+  } finally {
+    server.close();
+    upstreamServer.close();
+    delete process.env.UPSTREAM_URL;
+  }
+});
+
 test('models endpoint stays public even when PROXY_API_KEY is set (presenton check)', async () => {
   process.env.PROXY_API_KEY = 'secret';
   const server = await startGateway();
